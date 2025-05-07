@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from tqdm import tqdm
 
 def create_mapping(labels):
     label2idx = {label:idx for idx,label in enumerate(labels)}
@@ -9,7 +10,7 @@ def create_mapping(labels):
 def create_dataframe(path, labels, label2idx, ALLOWED_EXTENSIONS = ('jpg', 'jpeg', 'png')):
   data = []
 
-  for foldername in os.listdir(path):
+  for foldername in tqdm(os.listdir(path), desc="Creating DataFrame", position=0):
     folderpath = os.path.join(path,foldername)
 
     if foldername in labels and os.path.isdir(folderpath):
@@ -17,7 +18,7 @@ def create_dataframe(path, labels, label2idx, ALLOWED_EXTENSIONS = ('jpg', 'jpeg
       data.extend(
           # (imagepaths, labels)
           (os.path.join(folderpath,image), label2idx[foldername])
-          for image in os.listdir(folderpath)
+          for image in tqdm(os.listdir(folderpath), desc=f"Processing {foldername}", position=1, leave=False)
           if os.path.isfile(os.path.join(folderpath,image)) and image.lower().endswith(ALLOWED_EXTENSIONS)
       )
 

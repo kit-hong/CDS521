@@ -1,5 +1,6 @@
 import cv2
 import os
+from tqdm import tqdm
 
 ''''
 /project-folder
@@ -51,40 +52,48 @@ def resize_rename_write(img, idx, img_index, outdir, tag):
     output_path = os.path.join(outdir, output_name)
     cv2.imwrite(output_path, resized_img)
 
-def process(path, label, label2idx, outdir):
+def process(path, label, label2idx, outdir, ALLOWED_EXTENSIONS = ('jpg', 'jpeg', 'png')):
     img_index = 0
     idx = label2idx[label]
 
-    for file in os.listdir(path):
-        file_path = os.path.join(path,file)
-        if file_path.endswith('.jpg') and os.path.isfile(file_path):
-            try:
-                img = cv2.imread(file_path)
+    label_outdir = os.path.join(outdir, label)
+    if not os.path.exists(label_outdir):
+        os.makedirs(label_outdir)
 
-                resize_rename_write(img, idx, img_index, outdir, "original")
+    files = [f for f in os.listdir(path) if f.lower().endswith(ALLOWED_EXTENSIONS) and os.path.isfile(os.path.join(path, f))]
+
+    for file in tqdm(files, desc=f"Processing {label}", position=0):
+        file_path = os.path.join(path,file)
+        img = cv2.imread(file_path)
+
+        if img is None:
+            print(f"Failed to read image: {file_path}")
+            continue
+        try:
+            resize_rename_write(img, idx, img_index, label_outdir, "original")
+            img_index += 1
+
+            flipped_ori_imgs = flip(img)
+            for flipped_ori_img in tqdm(flipped_ori_imgs, desc="Flipping Original", leave=False, position=1):
+                resize_rename_write(flipped_ori_img, idx, img_index, label_outdir, "original_flipped")
                 img_index += 1
 
-                flipped_ori_imgs = flip(img)
-                for flipped_ori_img in flipped_ori_imgs:
-                    resize_rename_write(flipped_ori_img, idx, img_index, outdir, "original_flipped")
+            rotated_imgs = rotate_image(img)
+            for rotated_img in tqdm(rotated_imgs, desc="Rotating Original", leave=False, position=2):
+                resize_rename_write(rotated_img, idx, img_index, label_outdir, "original_rotated")
+                img_index += 1
+
+                flipped_imgs = flip(rotated_img)
+                for flipped_img in tqdm(flipped_imgs, desc="Flipping Rotated", leave=False, position=3):
+                    resize_rename_write(flipped_img, idx, img_index, label_outdir, "rotated_flipped") 
                     img_index += 1
 
-                rotated_imgs = rotate_image(img)
-                for rotated_img in rotated_imgs:
-                    resize_rename_write(rotated_img, idx, img_index, outdir, "original_rotated")
-                    img_index += 1
-
-                    flipped_imgs = flip(rotated_img)
-                    for flipped_img in flipped_imgs:
-                        resize_rename_write(flipped_img, idx, img_index, outdir, "rotated_flipped") 
-                        img_index += 1
-
-            except Exception as e:
-                print(f"Failed at - {file}. Error: {e}")
+        except Exception as e:
+            print(f"Failed at - {file}. Error: {e}")
 
 def main():
-    main_folder = "/raw_input"
-    outdir = "/output"
+    main_folder = "raw_input"
+    outdir = "output"
     if not os.path.exists(outdir):
         os.makedirs(outdir)
         
