@@ -22,7 +22,7 @@ def create_mapping(labels):
     idx2label = {idx:label for idx,label in enumerate(labels)}
     return label2idx, idx2label
 
-def rotate_image(image, angles=[0, 15, 30, 45, 60, 75, 90]):
+def rotate_image(image, angles=[15, 30, 45, 60, 75, 90]):
     (h, w) = image.shape[:2]
     center = (w // 2, h // 2)
     rotated_images = []
@@ -50,7 +50,7 @@ def resize_rename_write(img, idx, img_index, outdir, tag):
     resized_img = cv2.resize(img, (224, 224))
     output_name = f"{idx}_{img_index}_{tag}.jpg"
     output_path = os.path.join(outdir, output_name)
-    cv2.imwrite(output_path, resized_img)
+    cv2.imwrite(output_path, resized_img, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
 
 def process(path, label, label2idx, outdir, ALLOWED_EXTENSIONS = ('jpg', 'jpeg', 'png')):
     img_index = 0
