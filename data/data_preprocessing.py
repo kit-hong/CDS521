@@ -1,6 +1,7 @@
 import cv2
 import os
 from tqdm import tqdm
+import multiprocessing as mp
 
 ''''
 /project-folder
@@ -100,10 +101,18 @@ def main():
     labels = ["Unripe", "Early Ripening", "Ripe", "Fully Ripe", "Overripe"]
     label2idx, idx2label = create_mapping(labels)
 
+    pool = mp.Pool(processes=min(mp.cpu_count(), len(labels)))
+    tasks = []
+
     for foldername in os.listdir(main_folder):
         folder_path = os.path.join(main_folder, foldername)
         if os.path.isdir(folder_path):
-            process(folder_path,foldername,label2idx,outdir)
+            tasks.append((folder_path, foldername, label2idx, outdir))
+
+    pool.starmap(process, tasks)
+    pool.close()
+    pool.join()
+
 
 if __name__ == "__main__":
     main()
