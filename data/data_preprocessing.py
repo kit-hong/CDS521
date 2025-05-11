@@ -93,8 +93,8 @@ def process(path, label, label2idx, outdir, ALLOWED_EXTENSIONS = ('jpg', 'jpeg',
             print(f"Failed at - {file}. Error: {e}")
 
 def main():
-    main_folder = "raw_input"
-    outdir = "output"
+    main_folder = "data/raw_input"
+    outdir = "data/output"
     if not os.path.exists(outdir):
         os.makedirs(outdir)
         
