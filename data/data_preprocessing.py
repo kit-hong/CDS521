@@ -94,7 +94,7 @@ def process(path, label, label2idx, outdir, ALLOWED_EXTENSIONS = ('jpg', 'jpeg',
 
 def main():
     main_folder = "data/raw_input"
-    outdir = "data/output"
+    outdir = "data/processed_data"
     if not os.path.exists(outdir):
         os.makedirs(outdir)
         
