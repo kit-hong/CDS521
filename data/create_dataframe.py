@@ -29,7 +29,7 @@ def main():
     labels = ["Unripe", "Early Ripening", "Ripe", "Fully Ripe", "Overripe"]
     label2idx, idx2label = create_mapping(labels)
 
-    data_path = "/output"
+    data_path = "data/output"
     
     df = create_dataframe(data_path, labels, label2idx)
     df.to_csv(os.path.join(os.getcwd(), 'data.csv'), index=False)
