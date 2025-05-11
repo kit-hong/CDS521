@@ -104,6 +104,6 @@ def main():
         folder_path = os.path.join(main_folder, foldername)
         if os.path.isdir(folder_path):
             process(folder_path,foldername,label2idx,outdir)
-
+    
 if __name__ == "__main__":
     main()
