@@ -87,6 +87,7 @@ def process(path, label, label2idx, outdir, ALLOWED_EXTENSIONS = ('jpg', 'jpeg',
                 for flipped_img in tqdm(flipped_imgs, desc="Flipping Rotated", leave=False, position=3):
                     resize_rename_write(flipped_img, idx, img_index, label_outdir, "rotated_flipped") 
                     img_index += 1
+            print(f"Processed - {img_index} images")
 
         except Exception as e:
             print(f"Failed at - {file}. Error: {e}")
