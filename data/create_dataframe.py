@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from tqdm import tqdm
-from data.data_preprocessing import create_mapping
+from data_preprocessing import create_mapping
 
 def create_dataframe(path, labels, label2idx, ALLOWED_EXTENSIONS = ('jpg', 'jpeg', 'png')):
   data = []
