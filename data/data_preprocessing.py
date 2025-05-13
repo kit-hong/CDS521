@@ -1,5 +1,6 @@
 import cv2
 import os
+import numpy as np
 from tqdm import tqdm
 
 ''''
@@ -22,7 +23,7 @@ def create_mapping(labels):
     idx2label = {idx:label for idx,label in enumerate(labels)}
     return label2idx, idx2label
 
-def rotate_image(image, angles=[15, 30, 45, 60, 75, 90]):
+def rotate_image(image, angles=np.arange(0,360,30)):
     (h, w) = image.shape[:2]
     center = (w // 2, h // 2)
     rotated_images = []
@@ -46,9 +47,22 @@ def flip(image):
     flipped_images.append(vertical_flip(image))
     return flipped_images
 
-def resize_rename_write(img, idx, img_index, outdir, tag):
+def shear(image, factors = np.arange(-0.2,0.2,0.05)):
+    h, w = image.shape[:2]
+    sheared_images = []
+
+    for factor in factors:
+        M_x = np.float32([[1, factor, 0], [0, 1, 0]])
+        M_y = np.float32([[1, 0, 0], [factor, 1, 0]])
+
+        sheared_images.append(cv2.warpAffine(image, M_x, (w, h)))
+        sheared_images.append(cv2.warpAffine(image, M_y, (w, h)))
+    
+    return sheared_images
+
+def resize_rename_write(img, idx, img_index, outdir):
     resized_img = cv2.resize(img, (224, 224))
-    output_name = f"{idx}_{img_index}_{tag}.jpg"
+    output_name = f"{idx}_{img_index}.jpg"
     output_path = os.path.join(outdir, output_name)
     cv2.imwrite(output_path, resized_img, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
 
@@ -70,23 +84,26 @@ def process(path, label, label2idx, outdir, ALLOWED_EXTENSIONS = ('jpg', 'jpeg',
             print(f"Failed to read image: {file_path}")
             continue
         try:
-            resize_rename_write(img, idx, img_index, label_outdir, "original")
+            resize_rename_write(img, idx, img_index, label_outdir)
             img_index += 1
-
-            flipped_ori_imgs = flip(img)
-            for flipped_ori_img in tqdm(flipped_ori_imgs, desc="Flipping Original", leave=False, position=1):
-                resize_rename_write(flipped_ori_img, idx, img_index, label_outdir, "original_flipped")
+            
+            # flipping
+            flipped_imgs = flip(img)
+            for flipped_img in flipped_imgs:
+                resize_rename_write(flipped_img, idx, img_index, label_outdir)
                 img_index += 1
 
+            # rotation
             rotated_imgs = rotate_image(img)
-            for rotated_img in tqdm(rotated_imgs, desc="Rotating Original", leave=False, position=2):
-                resize_rename_write(rotated_img, idx, img_index, label_outdir, "original_rotated")
+            for rotated_img in rotated_imgs:
+                resize_rename_write(rotated_img, idx, img_index, label_outdir)
                 img_index += 1
 
-                flipped_imgs = flip(rotated_img)
-                for flipped_img in tqdm(flipped_imgs, desc="Flipping Rotated", leave=False, position=3):
-                    resize_rename_write(flipped_img, idx, img_index, label_outdir, "rotated_flipped") 
-                    img_index += 1
+            # shearing
+            sheared_imgs = shear(img)
+            for sheared_img in sheared_imgs:
+                resize_rename_write(sheared_img, idx, img_index, label_outdir)
+                img_index += 1
 
         except Exception as e:
             print(f"Failed at - {file}. Error: {e}")
