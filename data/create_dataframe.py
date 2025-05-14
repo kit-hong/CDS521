@@ -1,7 +1,12 @@
 import os
 import pandas as pd
 from tqdm import tqdm
-from data_preprocessing import create_mapping
+from .data_preprocessing import create_mapping
+
+def create_mapping(labels):
+    label2idx = {label:idx for idx,label in enumerate(labels)}
+    idx2label = {idx:label for idx,label in enumerate(labels)}
+    return label2idx, idx2label
 
 def create_dataframe(path, labels, label2idx, ALLOWED_EXTENSIONS = ('jpg', 'jpeg', 'png')):
   data = []
