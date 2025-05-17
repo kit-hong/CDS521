@@ -3,34 +3,20 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-''''
-/project-folder
-│
-├── data_preprocessing.py    
-│
-├── /raw_input                   
-│   ├── /Unripe              
-│   ├── /Early Ripening      
-│   ├── /Ripe                
-│   ├── /Fully Ripe         
-│   └── /Overripe            
-│
-└── /output                  
-'''
-
 def create_mapping(labels):
     label2idx = {label:idx for idx,label in enumerate(labels)}
     idx2label = {idx:label for idx,label in enumerate(labels)}
     return label2idx, idx2label
 
-def rotate_image(image, angles=np.arange(0,360,30)):
+def rotate_image(image, angles=np.arange(0, 360, 30)):
     (h, w) = image.shape[:2]
     center = (w // 2, h // 2)
     rotated_images = []
     
     for a in angles:
         rotation_matrix = cv2.getRotationMatrix2D(center, a, 1.0)
-        rotated_image = cv2.warpAffine(image, rotation_matrix, (w, h))
+        # Fix black corners by reflecting the border
+        rotated_image = cv2.warpAffine(image, rotation_matrix, (w, h), borderMode=cv2.BORDER_REFLECT)
         rotated_images.append(rotated_image)
     
     return rotated_images
@@ -47,24 +33,40 @@ def flip(image):
     flipped_images.append(vertical_flip(image))
     return flipped_images
 
-def shear(image, factors = np.arange(-0.2,0.2,0.05)):
+def shear(image, factors=[-0.1, 0.1]):
     h, w = image.shape[:2]
     sheared_images = []
-
     for factor in factors:
         M_x = np.float32([[1, factor, 0], [0, 1, 0]])
         M_y = np.float32([[1, 0, 0], [factor, 1, 0]])
-
-        sheared_images.append(cv2.warpAffine(image, M_x, (w, h)))
-        sheared_images.append(cv2.warpAffine(image, M_y, (w, h)))
-    
+        sheared_images.append(cv2.warpAffine(image, M_x, (w, h), borderMode=cv2.BORDER_REFLECT))
+        sheared_images.append(cv2.warpAffine(image, M_y, (w, h), borderMode=cv2.BORDER_REFLECT))
     return sheared_images
 
 def resize_rename_write(img, idx, img_index, outdir):
-    resized_img = cv2.resize(img, (224, 224))
+    desired_size = 224
+    h, w = img.shape[:2]
+
+    # Scale the image proportionally - avoid distortion
+    scale = desired_size / max(h, w)
+    new_w = int(w * scale)
+    new_h = int(h * scale)
+    resized_img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
+    # Pad to make it square (224x224) - avoid distortion
+    delta_w = desired_size - new_w
+    delta_h = desired_size - new_h
+    top = delta_h // 2
+    bottom = delta_h - top
+    left = delta_w // 2
+    right = delta_w - left
+
+    padded_img = cv2.copyMakeBorder(resized_img, top, bottom, left, right, borderType=cv2.BORDER_REFLECT)
+
+    # Step 3: Save the final 224x224 image
     output_name = f"{idx}_{img_index}.jpg"
     output_path = os.path.join(outdir, output_name)
-    cv2.imwrite(output_path, resized_img, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+    cv2.imwrite(output_path, padded_img, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
 
 def process(path, label, label2idx, outdir, ALLOWED_EXTENSIONS = ('jpg', 'jpeg', 'png')):
     img_index = 0
@@ -112,8 +114,8 @@ def process(path, label, label2idx, outdir, ALLOWED_EXTENSIONS = ('jpg', 'jpeg',
 
 
 def main():
-    main_folder = "data/raw_input"
-    outdir = "data/processed_data"
+    main_folder = "raw_input"
+    outdir = "processed_data"
     if not os.path.exists(outdir):
         os.makedirs(outdir)
         
@@ -124,6 +126,6 @@ def main():
         folder_path = os.path.join(main_folder, foldername)
         if os.path.isdir(folder_path):
             process(folder_path,foldername,label2idx,outdir)
-    
+
 if __name__ == "__main__":
     main()

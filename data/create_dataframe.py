@@ -1,7 +1,7 @@
 import os
+from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
-from .data_preprocessing import create_mapping
 
 def create_mapping(labels):
     label2idx = {label:idx for idx,label in enumerate(labels)}
@@ -30,10 +30,10 @@ def main():
     labels = ["Unripe", "Early Ripening", "Ripe", "Fully Ripe", "Overripe"]
     label2idx, idx2label = create_mapping(labels)
 
-    data_path = "data/processed_data"
+    data_path = Path("data/processed_data")
     
     df = create_dataframe(data_path, labels, label2idx)
-    df.to_csv(os.path.join(os.getcwd(), 'data.csv'), index=False)
+    df.to_csv(Path.cwd() / 'data.csv', index=False)
 
 if __name__ == "__main__":
     main()
