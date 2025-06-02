@@ -8,6 +8,12 @@ def create_mapping(labels):
     idx2label = {idx:label for idx,label in enumerate(labels)}
     return label2idx, idx2label
 
+def extract_ori_id(filename):
+  name_only = os.path.splitext(filename)[0] 
+  parts = name_only.split('_')
+  ori_id = '_'.join(parts[2:])
+  return ori_id
+
 def create_dataframe(path, labels, label2idx, ALLOWED_EXTENSIONS = ('jpg', 'jpeg', 'png')):
   data = []
 
@@ -18,12 +24,12 @@ def create_dataframe(path, labels, label2idx, ALLOWED_EXTENSIONS = ('jpg', 'jpeg
 
       data.extend(
           # (imagepaths, labels)
-          (os.path.join(folderpath,image), label2idx[foldername])
+          (os.path.join(folderpath,image), label2idx[foldername], extract_ori_id(image))
           for image in tqdm(os.listdir(folderpath), desc=f"Processing {foldername}", position=1, leave=False)
           if os.path.isfile(os.path.join(folderpath,image)) and image.lower().endswith(ALLOWED_EXTENSIONS)
       )
 
-  df = pd.DataFrame(data, columns = ['imagepath', 'label'])
+  df = pd.DataFrame(data, columns = ['imagepath', 'label', 'ori_id'])
   return df
 
 def main():
