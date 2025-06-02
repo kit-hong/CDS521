@@ -33,6 +33,7 @@ def main():
     data_path = Path("data/processed_data")
     
     df = create_dataframe(data_path, labels, label2idx)
+    df['imagepath'] = df['imagepath'].apply(lambda x: str(Path(x).as_posix()))
     df.to_csv(Path.cwd() / 'data.csv', index=False)
 
 if __name__ == "__main__":
