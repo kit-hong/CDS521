@@ -43,7 +43,7 @@ def shear(image, factors=[-0.1, 0.1]):
         sheared_images.append(cv2.warpAffine(image, M_y, (w, h), borderMode=cv2.BORDER_REFLECT))
     return sheared_images
 
-def resize_rename_write(img, idx, img_index, outdir):
+def resize_rename_write(img, idx, img_index, outdir, ori_id):
     desired_size = 224
     h, w = img.shape[:2]
 
@@ -64,7 +64,7 @@ def resize_rename_write(img, idx, img_index, outdir):
     padded_img = cv2.copyMakeBorder(resized_img, top, bottom, left, right, borderType=cv2.BORDER_REFLECT)
 
     # Step 3: Save the final 224x224 image
-    output_name = f"{idx}_{img_index}.jpg"
+    output_name = f"{idx}_{img_index}_{ori_id}.jpg"
     output_path = os.path.join(outdir, output_name)
     cv2.imwrite(output_path, padded_img, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
 
@@ -81,30 +81,31 @@ def process(path, label, label2idx, outdir, ALLOWED_EXTENSIONS = ('jpg', 'jpeg',
     for file in tqdm(files, desc=f"Processing {label}", position=0):
         file_path = os.path.join(path,file)
         img = cv2.imread(file_path)
+        ori_id = os.path.splitext(file)[0].replace(" ", "_")
 
         if img is None:
             print(f"Failed to read image: {file_path}")
             continue
         try:
-            resize_rename_write(img, idx, img_index, label_outdir)
+            resize_rename_write(img, idx, img_index, label_outdir, ori_id)
             img_index += 1
             
             # flipping
             flipped_imgs = flip(img)
             for flipped_img in flipped_imgs:
-                resize_rename_write(flipped_img, idx, img_index, label_outdir)
+                resize_rename_write(flipped_img, idx, img_index, label_outdir, ori_id)
                 img_index += 1
 
             # rotation
             rotated_imgs = rotate_image(img)
             for rotated_img in rotated_imgs:
-                resize_rename_write(rotated_img, idx, img_index, label_outdir)
+                resize_rename_write(rotated_img, idx, img_index, label_outdir, ori_id)
                 img_index += 1
 
             # shearing
             sheared_imgs = shear(img)
             for sheared_img in sheared_imgs:
-                resize_rename_write(sheared_img, idx, img_index, label_outdir)
+                resize_rename_write(sheared_img, idx, img_index, label_outdir, ori_id)
                 img_index += 1
 
         except Exception as e:

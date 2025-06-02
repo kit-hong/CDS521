@@ -41,7 +41,7 @@ def rename_raw_files(path, foldername, ALLOWED_EXTENSIONS=('jpg', 'jpeg', 'png')
     print(f"Processed - {img_index} images in {foldername}")
 
 def main():
-    main_folder = "raw_input"
+    main_folder = "data/raw_input"
         
     for foldername in os.listdir(main_folder):
         folder_path = os.path.join(main_folder, foldername)
