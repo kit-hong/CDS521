@@ -1,0 +1,13 @@
+optimizer,lr,loss_fn,batch_size,val_acc
+Adam,0.001,CrossEntropy,32,0.967564870259481
+Adam,0.001,WeightedCrossEntropy,64,0.9645708582834331
+Adam,0.005,CrossEntropy,32,0.9600798403193613
+Adam,0.005,CrossEntropy,64,0.9590818363273453
+Adam,0.005,CrossEntropy,16,0.9456087824351297
+Adagrad,0.005,CrossEntropy,32,0.9236526946107785
+Adam,0.0001,WeightedCrossEntropy,16,0.9226546906187625
+Adam,0.0001,WeightedCrossEntropy,64,0.9211576846307385
+Adam,0.0001,CrossEntropy,64,0.9211576846307385
+Adagrad,0.005,WeightedCrossEntropy,64,0.9116766467065869
+SGD,0.0001,WeightedCrossEntropy,32,0.8652694610778443
+Adagrad,0.001,WeightedCrossEntropy,32,0.8248502994011976
